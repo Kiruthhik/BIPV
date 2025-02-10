@@ -1,0 +1,87 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block extrahead %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div>
+    <h2>Shadow Analysis</h2>
+    <canvas id="shadowChart" width="800" height="400"></canvas>
+</div>
+
+<h3>Raw JSON Data:</h3>
+<pre id="debug-shadow-script">{{ shadow_data|json_script:"shadow-data" }}</pre>
+<pre id="debug-hours-script">{{ hours|json_script:"hours-data" }}</pre>
+<pre id="debug-faces-script">{{ faces|json_script:"faces-data" }}</pre>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const shadowDataScript = document.getElementById('shadow-data');
+        const hoursScript = document.getElementById('hours-data');
+        const facesScript = document.getElementById('faces-data');
+
+        console.log("Shadow Data Script Content:", shadowDataScript ? shadowDataScript.textContent : "Not Found");
+        console.log("Hours Script Content:", hoursScript ? hoursScript.textContent : "Not Found");
+        console.log("Faces Script Content:", facesScript ? facesScript.textContent : "Not Found");
+
+        const shadowData = JSON.parse(shadowDataScript.textContent);
+        const hours = JSON.parse(hoursScript.textContent);
+        const faces = JSON.parse(facesScript.textContent);
+
+        console.log("Parsed Shadow Data:", shadowData);
+        console.log("Parsed Hours:", hours);
+        console.log("Parsed Faces:", faces);
+
+        const datasets = faces.map((face, index) => {
+            const shadowEntry = shadowData.find(data => data.face_id === face.id) || { shadow_percentages: [] };
+            return {
+                label: `Face ${face.id}`,
+                data: shadowEntry.shadow_percentages,
+                backgroundColor: `rgba(${50 + index * 50}, 99, 132, 0.2)`,
+                borderColor: `rgba(${50 + index * 50}, 99, 132, 1)`,
+                borderWidth: 1
+            };
+        });
+
+        console.log("Prepared Datasets:", datasets);
+
+        const ctx = document.getElementById('shadowChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: hours.map(hour => `${hour}:00`),
+                datasets: datasets
+            },
+            options: {
+                scales: {
+                    y: { beginAtZero: true },
+                    x: { stacked: true },
+                },
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Shadow Analysis (Percentage of Face Under Shadow)'
+                    }
+                }
+            }
+        });
+    });
+</script>
+
+<!-- Embedding JSON data -->
+<script type="application/json" id="shadow-data">
+    {{ shadow_data|json_script:"shadow-data" }}
+</script>
+<script type="application/json" id="hours-data">
+    {{ hours|json_script:"hours-data" }}
+</script>
+<script type="application/json" id="faces-data">
+    {{ faces|json_script:"faces-data" }}
+</script>
+{% endblock %}
