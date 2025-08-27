@@ -322,4 +322,4 @@ python manage.py runserver
 ## 👥 Authors
 
 * **TechDecks / Rajalakshmi Engineering College**
-* Contact: *\kiruthhik@gmail.com*
+* Contact: *kiruthhik@gmail.com*
